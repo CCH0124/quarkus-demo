@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kafka-producer-callback
+  name: kafka-producer-callback
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-producer
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kafka-producer
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true
+      imagePullSecrets:
+        - name: registry-credentials
+      containers:
+        - image: cch0124/kafka-producer-callback:1.0.0-SNAPSHOT
+          name: kafka-producer-callback
+          imagePullPolicy: Always # IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+          env:
+            - name: kafka.topic
+              value: event
+            - name: kafka.brokers.host
+              value: my-cluster-kafka-bootstrap.default.svc.cluster.local:9092
+            - name: kafka.time.period
+              value: "5000"
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+              name: callback
+          resources:
+            requests:
+              memory: '256Mi'
+              cpu: '500m'
+            limits:
+              memory: '1Gi'
+              cpu: '1'
+      restartPolicy: Always
