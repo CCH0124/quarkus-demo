@@ -15,6 +15,7 @@ public class ProducerRouteBuilder extends RouteBuilder {
     /**
      * bufferMemorySize default is 33554432
      * compressionCodec none、gzip、snappy、lz4
+     * requestRequiredAcks 保證數據
      * @throws Exception
      */
     @Override
@@ -26,7 +27,9 @@ public class ProducerRouteBuilder extends RouteBuilder {
                         "&bufferMemorySize={{kafka.producer.bufferMemorySize}}" +
                         "&producerBatchSize={{kafka.producer.producerBatchSize}}" +
                         "&lingerMs={{kafka.producer.lingerMs}}" +
-                        "&compressionCodec={{kafka.producer.compressionCodec}}")
+                        "&compressionCodec={{kafka.producer.compressionCodec}}" +
+                        "&requestRequiredAcks=all" +
+                        "&retries={{kafka.producer.retries}}")
                 .process(new Processor() {
                     @Override
                     public void process(Exchange exchange) throws Exception {
