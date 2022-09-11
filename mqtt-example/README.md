@@ -62,3 +62,7 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 1. `TempGenerator.java` 負責產生數據，並向 MQTT devices topic 發送訊息
 2. `MqttDeviceMessageConsumer.java` 接收 MQTT devices topic 資料並進行一些轉換
 3. `DeviceResource.java` 檢索記憶體中的數據流，並使用服務器發送事件將這些裝置資料發送到瀏覽器
+
+瀏覽器資料如下
+
+![img.png](images/browser.png)
