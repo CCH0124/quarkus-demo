@@ -76,3 +76,5 @@ spec:
     retention.ms: 7200000
     segment.bytes: 1073741824
 ```
+
+整合 `KEDA` 可以參考此[鏈結](https://github.com/CCH0124/DevOps/blob/main/kubernetes-third-party/KEDA.md)
