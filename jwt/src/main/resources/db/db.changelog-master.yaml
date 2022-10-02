@@ -1,0 +1,24 @@
+#https://docs.liquibase.com/change-types/sql-file.html
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: itachi
+      changes:
+      - sqlFile:
+          dbms: 'postgresql'
+          encoding: utf8
+          path: classpath:db/changelog/2022/08/13-02-changelog.sql
+          splitStatements: true
+          stripComments: true
+      comment: create user and role table
+  - changeSet:
+        id: 2
+        author: itachi
+        changes:
+            - sqlFile:
+                  dbms: 'postgresql'
+                  encoding: utf8
+                  path: classpath:db/changelog/2022/09/09-25-changelog.sql
+                  splitStatements: true
+                  stripComments: true
+        comment: insert role
