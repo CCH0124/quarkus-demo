@@ -263,7 +263,29 @@ Quarkus 直接使用 `/q/health/live` 和 `/q/health/ready` 端點來**避免 HT
 >如果使用 Quarkus Kubernetes 差件，生成 Kubernetes yaml 時，會在 `Deployment` 資源中自動配置 `liveness` 和 `readiness ` 探針
 
 ##　Kubernetes liveness 和　readiness 探針
+|Kubernetes probe parameter| Description |
+|---|---|
+|initialDelaySeconds|開始探測之前等待的時間|
+|periodSeconds|探測間隔時間|
+|timeout|等待探測完成的時間|
+|successThreshold|在失敗後被視為成功的最小連續成功探測|
+|failureThreshold|在放棄之前重試 failureThreshold 次。放棄 `liveness` 探測將重新啟動容器。放棄 `readiness` 探測將暫停到容器的流量|
 
+在 Kubernetes 會類似於下面
+```yaml
+...
+      livenessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /q/health/live
+          port: 80
+          scheme: HTTP 
+        initialDelaySeconds: 0
+        periodSeconds: 30
+        successThreshold: 1
+        timeoutSeconds: 10
+...
+```
 
 ## Metrics
 
