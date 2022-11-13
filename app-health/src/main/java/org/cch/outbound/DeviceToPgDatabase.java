@@ -24,7 +24,8 @@ public class DeviceToPgDatabase {
     )
     @Counted(
             value = "number-of-transactions",
-            description = "Insert to database. Number of transactions"
+            description = "Insert to database. Number of transactions",
+            extraTags = {"db", "language", "db", "content"}
     )
     public void process(DeviceSimulation data) {
         if (Objects.isNull(data)) {

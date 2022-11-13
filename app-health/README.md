@@ -1,3 +1,4 @@
+WSL access windows service setting `QUARKUS_HTTP_HOST=0.0.0.0`.
 # app-health Project
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
@@ -288,7 +289,9 @@ curl localhost:8080/q/metrics/
 ### 自訂義指標
 下面我們使用了
 - Timed
+  - 聚合計數持續時間並提供持續時間統計訊息以及吞吐量統計訊息
 - Counted
+  - 遞增的數值
 
 ```java
 // 方法程級
@@ -324,6 +327,9 @@ curl localhost:8080/q/metrics/
 
 ![img/Method.png](img/Method.png)
 
+整合 Prometheus 後可以如下進行查詢
+
+![prometheus-number_of_transactions_total](img/prometheus-number_of_transactions_total.png)
 
 ```java
 // API 程級
@@ -343,3 +349,47 @@ public Response getDeviceNameLogs() {
 ```
 
 ![img/API.png](img/API.png)
+
+
+整合至 prometheus
+
+```yaml
+$ cat quarkus-app.yml
+- targets:
+    - Itachi.local:8080
+  labels:
+    env: dev
+    role: app
+    __metrics_path__: /q/metrics
+```
+
+並將其定義至 `prometheus.yml` 如下的 `quarkus-app`。
+```yaml
+$ cat prometheus.yml
+global:
+  scrape_interval: 5s # 多久獲取一次目標
+  evaluation_interval: 15s # 多久評估一次規則
+....
+
+scrape_configs:
+
+  - job_name: 'otel-collector'
+    scrape_interval: 10s
+    static_configs:
+    file_sd_configs:
+      - files:
+        - /etc/prometheus/otel.yml
+....
+  - job_name: 'quarkus-app'
+    metrics_path: /q/metrics
+    scrape_interval: 10s
+    static_configs:
+    file_sd_configs:
+      - files:
+        - /etc/prometheus/quarkus-app.yml
+remote_write:
+  - url: "http://promscale:9201/write"
+remote_read:
+  - url: "http://promscale:9201/read"
+    read_recent: true
+```
