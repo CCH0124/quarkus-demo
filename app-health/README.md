@@ -415,3 +415,5 @@ remote_read:
   - url: "http://promscale:9201/read"
     read_recent: true
 ```
+
+> metric 會以另一個範例作為介紹這邊先帶過
