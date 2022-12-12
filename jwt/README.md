@@ -97,3 +97,8 @@ Payload
     "password": "1234567890"
 }
 ```
+
+## Ref
+- [bliblidotcom-techblog](https://medium.com/bliblidotcom-techblog/introduction-to-jwt-also-jws-jwe-jwa-jwk-e845b0db9f4e)
+- [authentication-and-authorization-using-jwt-on-quarkus](https://ard333.medium.com/authentication-and-authorization-using-jwt-on-quarkus-aca1f844996a)
+- [techtalksteve](https://www.techtalksteve.com/blog/3-quarkus-security-with-jwt/)
