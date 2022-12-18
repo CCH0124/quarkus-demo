@@ -46,7 +46,7 @@ spec:
       listener.ssl.external.peer_cert_as_username: "cn"
       listener.tcp.external.peer_cert_as_clientid: "cn"
       #    modules:
-      #      - name: "emqx_web_hook"
+      #      - name: "emqx_web_hook"kube
       #        enable: true
     securityContext:
       runAsUser: 1000

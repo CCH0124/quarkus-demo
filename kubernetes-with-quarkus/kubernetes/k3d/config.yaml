@@ -8,8 +8,14 @@ kubeAPI: # same as `--api-port myhost.my.domain:6445` (where the name would reso
   host: "quarkus.cch.dev" # important for the `server` setting in the kubeconfig
   hostIP: "127.0.0.1" # where the Kubernetes API will be listening on
   hostPort: "6445"
-image: rancher/k3s:v1.20.4-k3s1
+image: rancher/k3s:v1.23.14-k3s1
 ports:
-  - port: 8080:80 # same as `--port '8080:80@loadbalancer'`
+  - port: 80:80 # same as `--port '8080:80@loadbalancer'`
+    nodeFilters:
+      - loadbalancer
+  - port: 443:443 # same as `--port '8080:80@loadbalancer'`
+    nodeFilters:
+      - loadbalancer
+  - port: 8883:8883 # same as `--port '8080:80@loadbalancer'`
     nodeFilters:
       - loadbalancer

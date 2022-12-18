@@ -11,7 +11,7 @@ spec:
     "env": "prod"
   pluginName: emqx_web_hook
   config:
-    "web.hook.url": "https://wiclouddev.biotrd.net/log-service/emqx/webhook/logging"
+    "web.hook.url": ""
     "web.hook.headers.content-type": "application/json"
     "web.hook.body.encoding_of_payload_field": "plain"
     "web.hook.rule.client.connect.1" : '{"action": "on_client_connect"}'
