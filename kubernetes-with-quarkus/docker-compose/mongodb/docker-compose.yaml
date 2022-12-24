@@ -17,7 +17,6 @@ services:
       test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongosh -u test -p test123 --quiet) -eq 1
       interval: 10s
       start_period: 30s
-    command: ["--replSet", "dbrs", "--bind_ip_all"]
 
 networks:
   mongo-network:
