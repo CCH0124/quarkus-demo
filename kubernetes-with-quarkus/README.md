@@ -82,7 +82,28 @@ Monitor your application's health using SmallRye Health
 
 [Related guide section...](https://quarkus.io/guides/smallrye-health)
 
+## Architecture
+
+![](images/Quarkus-inte-kubernetes.drawio.png)
+
+
+1. Quarkus 產生假資料至 EMQX
+2. Quarkus 在 listen `cmd/state/+` topic 接收假資料
+3. 再將其存入 mongodb 中
+
+目的是透過 quarkus-kubernetes 讓 Quarkus 整合 Kubernetes。
+
+1. 設定 Secret、ConfigMap
+2. 設定 Ingress
+3. 設定 Service
+4. 設定 Deployment
+5. 設定 ServiceAccount
+
+Smally Health 自動會被整合至 Readiness、Liveness 選項；自動整合 Prometheus (此專案為實作)
+
 ## Build Native Image and Deploy
+
+環境設定
 ```
 quarkus.container-image.group=cch0124
 quarkus.container-image.name=${quarkus.application.name:unset}
@@ -95,21 +116,22 @@ quarkus.container-image.labels=maintainer='cch'\\,app='kubernetes-with-quarkus'
 quarkus.jib.base-native-image=quay.io/quarkus/quarkus-micro-image:2.0
 quarkus.jib.native-arguments=-Djava.util.logging.manager=org.jboss.logmanager.LogManager
 ```
+
+建置和推送 image，最後佈署至 kubernete。
 ```bash
-gradle build -Dquarkus.package.type=native -Dquarkus.native.container-build=true -Dquarkus.kubernetes.deploy=true
+gradle build -Dquarkus.package.type=native -Dquarkus.native.container-build=true -Dquarkus.kubernetes.deploy=true -Dquarkus.kubernetes.deployment-target=kubernetes -Dquarkus.container-image.push=true  -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=$(git log -1 --pretty=format:%h)
 ```
+
+`/kubernetes-with-quarkus/build` 在該目錄下會產生 Deployment yaml 等資源檔案。
 
 ```
 quarkus.kubernetes.deploy=true # 表示要將其進行部署
 quarkus.kubernetes.deployment-target=kubernetes
 ```
 
-```bash
-$ kubectl create ns prod 
-```
 ## K3d 
 ### Create Cluster
-```bash
+```bash 
 k3d cluster create -c config.yaml --servers-memory 12G
 $ k3d cluster list
 NAME              SERVERS   AGENTS   LOADBALANCER
@@ -160,3 +182,27 @@ $ helm install emqx-operator emqx/emqx-operator  --set installCRDs=true --namesp
 $ kubectl apply -f cert.yaml
 $ kubectl apply -f deployment.yaml
 ```
+
+## Test
+
+```bash
+$ kubectl  -n dev run mycurlpod --image=curlimages/curl -i --tty -- sh
+$ kubectl  -n dev exec mycurlpod -- curl http://kubernetes-with-quarkus.dev.svc.cluster.local:8080/device?tachometer=3000
+```
+
+## Kubernetes 
+
+
+delete
+```
+$ kubectl delete -f build/kubernetes/kubernetes.yml
+```
+
+### Defined secret and configMap
+
+載入下面套件
+```
+io.quarkus:quarkus-kubernetes-config
+```
+
+在 `src/main` 下建立 kubernetes 目錄，並在下面定義 Secret 和 ConfigMap  資源。
