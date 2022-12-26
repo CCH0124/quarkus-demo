@@ -1,6 +1,6 @@
 package org.cch.entity;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
 
@@ -16,6 +16,5 @@ public class Vehicle extends PanacheMongoEntity {
     // 順時油耗
     public float dynamical;
     // 上傳時間
-    public LocalDateTime timestamp;
-
+    public Date timestamp;
 }

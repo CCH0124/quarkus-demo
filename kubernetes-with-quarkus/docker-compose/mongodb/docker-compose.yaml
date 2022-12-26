@@ -6,10 +6,15 @@ services:
     hostname: mongodb
     restart: always
     container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root@1234
+      MONGO_INITDB_DATABASE: "devices"
     ports:
       - 27017:27017
     volumes:
-      - ./script/init.js:/scripts/init.js
+            #      - ./script/init.js:/scripts/init.js
+      - ./script/:/docker-entrypoint-initdb.d/:ro
       - mongo_data:/data/db
     networks:
       - mongo-network
