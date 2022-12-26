@@ -198,6 +198,239 @@ delete
 $ kubectl delete -f build/kubernetes/kubernetes.yml
 ```
 
+透過 quarkus 產生的完整 yaml
+
+```yaml
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: dev
+data:
+  application.properties: |
+    mqtt.connect.client-keystore=/opt/emqx/keystore.p12
+    mqtt.connect.trust-keystore=/opt/emqx/keystore.jks
+    mqtt.connect.broker-url=ssl://emqx.dev.svc.cluster.local
+    mqtt.connect.topic=cmd/state/+
+    time.period=1000
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb-config
+  namespace: dev
+stringData:
+  MONGO_HOST: mongodb://172.25.164.250:27017
+  MONGO_DATABASE_NAME: devices
+  MONGO_USERNAME: test
+  MONGO_PASSWORD: test1234
+  MONGO_AUTH_SOURCE: devices
+type: Opaque
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    app.quarkus.io/commit-id: 9d8f508fbd1a849a45598a2bff684be2d0a2c851
+    app.quarkus.io/build-timestamp: 2022-12-26 - 04:38:40 +0000
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /q/metrics
+    prometheus.io/port: "8080"
+    prometheus.io/scheme: http
+  labels:
+    app.kubernetes.io/part-of: kubernetes-with-quarkus
+    app.kubernetes.io/name: kubernetes-with-quarkus
+    app.kubernetes.io/version: 9d8f508
+  name: kubernetes-with-quarkus
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/part-of: kubernetes-with-quarkus
+      app.kubernetes.io/name: kubernetes-with-quarkus
+      app.kubernetes.io/version: 9d8f508
+  template:
+    metadata:
+      annotations:
+        app.quarkus.io/commit-id: 9d8f508fbd1a849a45598a2bff684be2d0a2c851
+        app.quarkus.io/build-timestamp: 2022-12-26 - 04:38:40 +0000
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /q/metrics
+        prometheus.io/port: "8080"
+        prometheus.io/scheme: http
+      labels:
+        app.kubernetes.io/part-of: kubernetes-with-quarkus
+        app.kubernetes.io/name: kubernetes-with-quarkus
+        app.kubernetes.io/version: 9d8f508
+      namespace: dev
+    spec:
+      containers:
+        - env:
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: MQTT_CONNECT_CLIENT_KEYPASS
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: keystore-pkcs-secret
+            - name: MQTT_CONNECT_TRUST_KEYPASS
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: keystore-jks-secret
+          envFrom:
+            - secretRef:
+                name: mongodb-config
+          image: registry.hub.docker.com/cch0124/kubernetes-with-quarkus:9d8f508
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /q/health/live
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: kubernetes-with-quarkus
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /q/health/ready
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+            requests:
+              cpu: 250m
+              memory: 64Mi
+          volumeMounts:
+            - mountPath: /home/jboss
+              name: app-config
+              readOnly: true
+            - mountPath: /opt/emqx
+              name: mqtt-cert
+              readOnly: true
+      securityContext:
+        fsGroup: 0
+        runAsGroup: 0
+        runAsNonRoot: true
+        runAsUser: 1001
+      serviceAccountName: kubernetes-with-quarkus
+      volumes:
+        - name: mqtt-cert
+          secret:
+            defaultMode: 384
+            items:
+              - key: keystore.jks
+                path: keystore.jks
+              - key: keystore.p12
+                path: keystore.p12
+            optional: false
+            secretName: emqx-client-cert
+        - configMap:
+            defaultMode: 384
+            name: app-config
+            optional: false
+          name: app-config
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    app.quarkus.io/commit-id: 9d8f508fbd1a849a45598a2bff684be2d0a2c851
+    app.quarkus.io/build-timestamp: 2022-12-26 - 04:38:40 +0000
+  labels:
+    app.kubernetes.io/part-of: kubernetes-with-quarkus
+    app.kubernetes.io/name: kubernetes-with-quarkus
+    app.kubernetes.io/version: 9d8f508
+  name: kubernetes-with-quarkus
+  namespace: dev
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kubernetes-with-quarkus-view
+  namespace: dev
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: view
+subjects:
+  - kind: ServiceAccount
+    name: kubernetes-with-quarkus
+    namespace: dev
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    app.quarkus.io/commit-id: 9d8f508fbd1a849a45598a2bff684be2d0a2c851
+    app.quarkus.io/build-timestamp: 2022-12-26 - 04:38:40 +0000
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /q/metrics
+    prometheus.io/port: "8080"
+    prometheus.io/scheme: http
+  labels:
+    app.kubernetes.io/name: kubernetes-with-quarkus
+    app.kubernetes.io/part-of: kubernetes-with-quarkus
+    app.kubernetes.io/version: 9d8f508
+  name: kubernetes-with-quarkus
+  namespace: dev
+spec:
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: kubernetes-with-quarkus
+    app.kubernetes.io/part-of: kubernetes-with-quarkus
+    app.kubernetes.io/version: 9d8f508
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    app.quarkus.io/commit-id: 9d8f508fbd1a849a45598a2bff684be2d0a2c851
+    app.quarkus.io/build-timestamp: 2022-12-26 - 04:38:40 +0000
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+  labels:
+    app.kubernetes.io/name: kubernetes-with-quarkus
+    app.kubernetes.io/part-of: kubernetes-with-quarkus
+    app.kubernetes.io/version: 9d8f508
+  name: kubernetes-with-quarkus
+  namespace: dev
+spec:
+  rules:
+    - host: k8s.cch.dev
+      http:
+        paths:
+          - backend:
+              service:
+                name: kubernetes-with-quarkus
+                port:
+                  name: http
+            path: /api/v1(/|$)(.*)
+            pathType: Prefix
+```
+
 ### Defined secret and configMap
 
 載入下面套件
