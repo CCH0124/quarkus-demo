@@ -1,0 +1,120 @@
+apiVersion: apps.emqx.io/v1beta3
+kind: EmqxBroker
+metadata:
+  name: emqx
+  labels:
+    "apps.emqx.io/instance": "emqx"
+    "role": "broker"
+    "env": "prod"
+  namespace: dev
+spec:
+  replicas: 1
+  emqxTemplate:
+          #    registry: docker.io
+    image: emqx/emqx:4.4.10
+    imagePullPolicy: IfNotPresent
+    extraVolumes:
+      - name: dev-emqx-ca
+        secret:
+          secretName: emqx-server-cert
+    extraVolumeMounts:
+      - mountPath: etc/emqx/
+        name: dev-emqx-ca
+    config:
+      name: "emqx"
+      cluster.discovery: "dns"
+      cluster.dns.type: "srv"
+      cluster.dns.app: "emqx"
+      cluster.dns.name: "emqx-headless.default.svc.cluster.local"
+      #      listener.tcp.external: 1883
+      mqtt.shared_subscription: "true"
+      allow_anonymous: "true"
+      #      mqtt.max_packet_size: "1MBi"
+      #      listener.tcp.external.max_conn_rate: 1000
+      #      listener.tcp.external.active_n: 100
+      #        listener.tcp.external.peer_cert_as_username: cn
+      #        listener.tcp.external.peer_cert_as_clientid: cn
+      #      listener.ssl.external.max_conn_rate: 500
+      #      listener.ssl.external.active_n: 100
+      #      listener.ssl.external.tls_versions: "tlsv1.3,tlsv1.2,tlsv1.1,tlsv1"
+      listener.ssl.external.depth: "10"
+      listener.ssl.external.keyfile: "/etc/emqx/tls.key"
+      listener.ssl.external.certfile: "/etc/emqx/tls.crt"
+      listener.ssl.external.cacertfile: "/etc/emqx/ca.crt"
+      listener.ssl.external.verify: "verify_peer"
+      listener.ssl.external.fail_if_no_peer_cert: "true"
+      listener.ssl.external.peer_cert_as_username: "cn"
+      listener.tcp.external.peer_cert_as_clientid: "cn"
+      #    modules:
+      #      - name: "emqx_web_hook"kube
+      #        enable: true
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      fsGroupChangePolicy: Always
+    readinessProbe:
+      httpGet:
+        path: /status
+        port: 8081
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      failureThreshold: 12
+    livenessProbe:
+      httpGet:
+        path: /status
+        port: 8081
+      initialDelaySeconds: 60
+      periodSeconds: 30
+      failureThreshold: 3
+    startupProbe:
+      httpGet:
+        path: /status
+        port: 8081
+      failureThreshold: 30
+      periodSeconds: 10
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "125m"
+      limits:
+        memory: "1024Mi"
+        cpu: "500m"
+    serviceTemplate:
+      metadata:
+        name: emqx
+        namespace: default
+        labels:
+          "apps.emqx.io/instance": "emqx"
+          env: prod
+          tire: broker
+      spec:
+        type: ClusterIP
+        selector:
+         "apps.emqx.io/instance": "emqx"
+         env: prod
+        ports:
+          - name: "http-management-8081"
+            port: 8081
+            protocol: "TCP"
+            targetPort: 8081
+          - name: "http-dashboard-18083"
+            port: 18083
+            protocol: "TCP"
+            targetPort: 18083
+          - name: "mqtt-tcp-1883"
+            protocol: "TCP"
+            port: 1883
+            targetPort: 1883
+          - name: "mqtt-tcp-11883"
+            protocol: "TCP"
+            port: 11883
+            targetPort: 11883
+          - name: "mqtt-ws-8083"
+            protocol: "TCP"
+            port: 8083
+            targetPort: 8083
+          - name: "mqtt-wss-8084"
+            protocol: "TCP"
+            port: 8084
+            targetPort: 8084

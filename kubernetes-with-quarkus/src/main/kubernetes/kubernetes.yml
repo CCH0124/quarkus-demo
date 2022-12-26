@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  application.properties: |
+    mqtt.connect.client-keystore=/opt/emqx/keystore.p12
+    mqtt.connect.trust-keystore=/opt/emqx/keystore.jks
+    mqtt.connect.broker-url=ssl://emqx.dev.svc.cluster.local
+    mqtt.connect.topic=cmd/state/+
+    time.period=1000
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb-config
+type: Opaque
+stringData:
+  MONGO_HOST: mongodb://172.25.164.250:27017
+  MONGO_DATABASE_NAME: devices
+  MONGO_USERNAME: test
+  MONGO_PASSWORD: test1234
+  MONGO_AUTH_SOURCE: devices
+  

@@ -1,0 +1,135 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned-issuer
+  namespace: dev
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ca-certificate
+  namespace: dev
+spec:
+  secretTemplate:
+    labels:
+      "apps.emqx.io/instance": "emqx"
+      role: broker
+      env: prod    
+  secretName: ca-cert
+  isCA: true
+  subject:
+    countries: 
+    - TW
+    localities: 
+    - KH
+    organizations: 
+    - wistron
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  keystores:
+    jks:
+      create: true
+      passwordSecretRef:
+        key: password
+        name:  keystore-jks-secret
+    pkcs12:
+       create: true
+       passwordSecretRef:
+         key: password
+         name: keystore-pkcs-secret
+  commonName: "An MQTT broker"
+  dnsNames:
+    - "*.dev.svc.cluster.local"
+    - "*.svc.cluster.local"
+  usages:
+    - digital signature
+    - key encipherment
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: ca-issuer
+  namespace: dev
+spec:
+  ca:
+    secretName: ca-cert
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: emqx-server
+  namespace: dev
+spec:
+  secretName: emqx-server-cert
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  isCA: false
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
+  dnsNames:
+    - "*.dev.svc.cluster.local"
+    - "*.svc.cluster.local"
+  commonName: "Server"
+  issuerRef:
+    name: ca-issuer
+    kind: Issuer
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keystore-jks-secret
+  namespace: dev
+data:
+  password: MXFhekBXU1g=
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keystore-pkcs-secret
+  namespace: dev
+data:
+  password: MXFhekBXU1g=
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: emqx-client
+  namespace: dev
+spec:
+  secretName: emqx-client-cert
+  dnsNames:
+    - "*.dev.svc.cluster.local"
+    - "*.svc.cluster.local"
+  usages:
+    - digital signature
+    - key encipherment
+    - client auth
+  keystores:
+    jks:
+      create: true
+      passwordSecretRef:
+        key: password
+        name: keystore-jks-secret
+    pkcs12:
+       create: true
+       passwordSecretRef:
+         key: password
+         name: keystore-pkcs-secret
+  commonName: "Client"
+  issuerRef:
+    name: ca-issuer
+    kind: Issuer

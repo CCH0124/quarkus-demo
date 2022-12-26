@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  mongo:
+    image: mongo:6.0.2
+    hostname: mongodb
+    restart: always
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root@1234
+      MONGO_INITDB_DATABASE: "devices"
+    ports:
+      - 27017:27017
+    volumes:
+            #      - ./script/init.js:/scripts/init.js
+      - ./script/:/docker-entrypoint-initdb.d/:ro
+      - mongo_data:/data/db
+    networks:
+      - mongo-network
+    healthcheck:
+      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongosh -u test -p test123 --quiet) -eq 1
+      interval: 10s
+      start_period: 30s
+
+networks:
+  mongo-network:
+    driver: bridge
+volumes:
+  mongo_data:
