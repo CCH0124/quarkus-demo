@@ -14,7 +14,6 @@ dependencies {
     implementation enforcedPlatform("${quarkusPlatformGroupId}:quarkus-debezium-bom:${quarkusPlatformVersion}")
     implementation 'org.apache.camel.quarkus:camel-quarkus-log'
     implementation 'org.apache.camel.quarkus:camel-quarkus-core'
-    implementation 'io.quarkus:quarkus-resteasy-reactive'
     implementation 'io.quarkus:quarkus-liquibase'
     implementation 'io.quarkus:quarkus-resteasy-jackson'
     implementation 'org.apache.camel.quarkus:camel-quarkus-debezium-postgres'

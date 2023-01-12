@@ -7,8 +7,6 @@ import com.cch.entity.Movie;
 import com.cch.mapper.MovieMapper;
 import com.cch.service.MovieService;
 
-import io.debezium.outbox.quarkus.ExportedEvent;
-
 
 
 public class MovieServiceImpl implements MovieService{

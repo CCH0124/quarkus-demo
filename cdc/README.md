@@ -73,3 +73,10 @@ Easily start your RESTful Web Services
 Easily start your Reactive RESTful Web Services
 
 [Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+
+
+## Build Image
+
+```bash
+gradle build -Dquarkus.package.type=native -Dquarkus.native.container-build=true -Dquarkus.container-image.push=true  -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=$(git log -1 --pretty=format:%h)
+```

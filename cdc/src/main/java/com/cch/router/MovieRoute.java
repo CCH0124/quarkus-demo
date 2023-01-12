@@ -2,6 +2,7 @@ package com.cch.router;
 
 import org.apache.camel.Predicate;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.camel.LoggingLevel;
@@ -13,6 +14,7 @@ import com.cch.entity.Movie;
 
 import io.debezium.data.Envelope;
 
+@ApplicationScoped
 public class MovieRoute extends RouteBuilder {
 
     @Inject
