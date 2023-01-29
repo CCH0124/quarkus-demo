@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: itachi
+      changes:
+      - sqlFile:
+          dbms: 'postgresql'
+          encoding: utf8
+          path: classpath:db/changelog/20230101.sql
+          splitStatements: true
+          stripComments: true
+      comment: create movie table
