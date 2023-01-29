@@ -1,0 +1,18 @@
+# https://github.com/grafana/helm-charts/blob/main/charts/promtail/values.yaml
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "http-metrics"
+resources:
+  limits:
+    cpu: 500m
+    memory: 2048Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+config:
+  snippets:
+    pipelineStages:
+      - docker: {}
+  # Loki service url
+  clients:
+    - url: http://loki-gateway/loki/api/v1/push

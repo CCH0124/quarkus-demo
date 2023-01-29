@@ -1,0 +1,31 @@
+alertmanager:
+  enabled: true
+  ingress:
+    enabled: false
+  service:
+    port: 9093
+    targetPort: 9093
+    type: ClusterIP
+grafana:
+  enabled: true
+  ingress:  
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.cch.com
+    path: /
+prometheus:
+  enabled: true
+  service:
+    port: 9090
+    targetPort: 9090
+    type: ClusterIP
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - prometheus.cch.com
+    paths:
+      - /
+prometheusSpec:
+  additionalScrapeConfigs: []

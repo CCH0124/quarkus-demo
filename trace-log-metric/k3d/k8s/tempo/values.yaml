@@ -1,0 +1,26 @@
+traces:
+  otlp:
+    grpc:
+      # -- Enable Tempo to ingest Jaeger GRPC traces
+      enabled: true
+      # -- Jaeger GRPC receiver config
+      receiverConfig: {}
+
+queryFrontend:
+  query:
+     enabled: true
+  service:
+    type: ClusterIP
+    annotations: {}
+
+minio:
+  enabled: true
+  mode: standalone
+  rootUser: root
+  rootPassword: root123456
+  persistence:
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi

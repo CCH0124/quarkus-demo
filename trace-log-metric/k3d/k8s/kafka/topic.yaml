@@ -1,0 +1,27 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: brand
+  namespace: dev
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  partitions: 2
+  replicas: 2
+  config:
+    retention.ms: 7200000 # 檔案清除策略
+    segment.bytes: 1073741824 # partition 分為多個 segment，指定 segment 的大小上限。達到此限制時，即會建立新的區段。
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: vehicle
+  namespace: dev
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  partitions: 2
+  replicas: 2
+  config:
+    retention.ms: 7200000 
+    segment.bytes: 1073741824

@@ -1,0 +1,58 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-my-collector
+spec:
+  mode: daemonset
+  config: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+    exporters:
+      logging:
+        loglevel: debug
+      otlp:
+        endpoint: tempo-distributor.observability:4317
+        tls:
+          insecure: true
+      loki:
+        endpoint: http://loki-loki-distributed-distributor:3100/loki/api/v1/push
+        tls:
+          insecure: true
+
+    processors:
+      attributes:
+        actions:
+        - action: insert
+          key: loki.attribute.labels
+          value: http_status_code
+        - action: insert
+          key: http_status_code
+          value: 500
+    
+      resource:
+        attributes:
+        - action: insert
+          key: loki.resource.labels
+          value: host_name, pod_name
+        - action: insert
+          key: host_name
+          value: guarana
+        - action: insert
+          key: pod_name
+          value: guarana-pod-01
+    
+    extensions:
+    
+    service:
+      extensions:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [logging, otlp]
+        logs:
+          receivers: [otlp]
+          processors: [resource, attributes]
+          exporters: [logging, loki]
