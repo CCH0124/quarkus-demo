@@ -13,6 +13,6 @@ public class BrandEvent {
 
     @Incoming("brands")
     public void createBrand(Brand brand) {
-        logger.infov("New brand: {0}", brand);
+        logger.infov("New brand: {0}", brand.toString());
     }
 }

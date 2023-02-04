@@ -6,7 +6,7 @@ metadata:
 spec:
   kafka:
     version: 3.3.1
-    replicas: 3
+    replicas: 1
     logging:
       type: inline
       loggers:
@@ -17,7 +17,7 @@ spec:
         cpu: "500m"
       limits:
         memory: 1Gi
-        cpu: "1"
+        cpu: "500m"
     readinessProbe: 
       initialDelaySeconds: 15
       timeoutSeconds: 5
@@ -54,16 +54,16 @@ spec:
         type: internal
         tls: true
     config:
-      offsets.topic.replication.factor: 3
-      transaction.state.log.replication.factor: 3
-      transaction.state.log.min.isr: 2
-      default.replication.factor: 3
-      min.insync.replicas: 2
+      offsets.topic.replication.factor: 1 #3
+      transaction.state.log.replication.factor: 1 #3
+      transaction.state.log.min.isr: 1 #2
+      default.replication.factor: 1 #3
+      min.insync.replicas: 1 #2
       inter.broker.protocol.version: "3.3"
     storage:
       type: ephemeral
   zookeeper:
-    replicas: 3
+    replicas: 1
     logging:
       type: inline
       loggers:
@@ -71,28 +71,28 @@ spec:
     resources:
       requests:
         memory: 512Mi
-        cpu: "500M"
+        cpu: "500m"
       limits:
         memory: 1Gi
-        cpu: "1"
+        cpu: "500m"
     jvmOptions:
       -Xms: 1024m
       -Xmx: 1024m
     storage:
       type: ephemeral
   entityOperator:
-    topicOperator:
-      watchedNamespace: dev
-      reconciliationIntervalSeconds: 60
-      logging: 
-        type: inline
-        loggers:
-          rootLogger.level: "INFO"
-      resources:
-        requests:
-          memory: 512Mi
-          cpu: "250M"
-        limits:
-          memory: 512Mi
-          cpu: "500M"
+    topicOperator: {}
+          #      watchedNamespace: dev
+          #      reconciliationIntervalSeconds: 60
+          #      logging: 
+          #        type: inline
+          #        loggers:
+          #          rootLogger.level: "INFO"
+          #      resources:
+          #        requests:
+          #          memory: 512Mi
+          #          cpu: "250M"
+          #        limits:
+          #          memory: 512Mi
+          #          cpu: "500M"
     userOperator: {}
