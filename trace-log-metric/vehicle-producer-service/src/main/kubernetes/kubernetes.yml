@@ -9,3 +9,5 @@ data:
     kafka.bootstrap.servers=my-cluster-kafka-bootstrap.dev.svc.cluster.local:9092
     mp.messaging.outgoing.brand.connector=smallrye-kafka
     mp.messaging.outgoing.vehicle.connector=smallrye-kafka
+    mp.messaging.outgoing.brand.value.serializer=io.quarkus.kafka.client.serialization.ObjectMapperSerializer
+    mp.messaging.outgoing.vehicle.value.serializer=io.quarkus.kafka.client.serialization.ObjectMapperSerializer
