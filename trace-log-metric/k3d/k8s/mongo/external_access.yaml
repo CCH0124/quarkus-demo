@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: external-mongo-service-0
+  namespace: mongodb
+  annotations:
+    kube-linter.io/ignore-all: "used for sample"
+spec:
+  type: LoadBalancer
+  selector:
+    app: vehicle-mongodb-svc
+    statefulset.kubernetes.io/pod-name: vehicle-mongodb-0
+  ports:
+    - protocol: TCP
+      port: 31181
+      targetPort: 27017
