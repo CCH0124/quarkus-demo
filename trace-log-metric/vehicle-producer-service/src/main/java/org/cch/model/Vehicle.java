@@ -2,6 +2,9 @@ package org.cch.model;
 
 import java.util.Date;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public class Vehicle {
     // 識別碼
     public String vehicleId;

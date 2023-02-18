@@ -162,3 +162,10 @@ $ helm install kafka-operator strimzi/strimzi-kafka-operator --version 0.33.0 --
 ```bash
 /k3d/k8s/kafka$ kubectl apply -f .
 ```
+
+8. Install Mongo
+
+```bash
+$ helm repo add mongodb https://mongodb.github.io/helm-charts
+$ helm install community-operator mongodb/community-operator --version  0.7.8 --namespace mongodb --create-namespace
+```

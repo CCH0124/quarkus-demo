@@ -1,0 +1,26 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: quarkus-application
+  namespace: prod
+  labels:
+    release: prom-stack # Mapping  Prometheus Operator Label 
+spec:
+  endpoints:
+  - port: http
+    path: /q/metrics
+    scheme: http
+    interval: 5s        
+    #  jobLabel: vehicle-producer-service
+  namespaceSelector:
+    matchNames:
+    - prod
+  selector:
+    matchExpressions:
+      - key: app.kubernetes.io/name 
+        values:
+        - vehicle-producer-service
+        - vehicle-consume-service
+        operator: In
+    #    matchLabels:
+    #      app: app.kubernetes.io/name=vehicle-producer-service

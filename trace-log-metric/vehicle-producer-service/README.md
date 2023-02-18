@@ -55,3 +55,12 @@ If you want to learn more about building native executables, please consult http
 - Kubernetes Config ([guide](https://quarkus.io/guides/kubernetes-config)): Read runtime configuration from Kubernetes ConfigMaps and Secrets
 - Kubernetes ([guide](https://quarkus.io/guides/kubernetes)): Generate Kubernetes resources from annotations
 - Micrometer metrics ([guide](https://quarkus.io/guides/micrometer)): Instrument the runtime and your application with dimensional metrics using Micrometer.
+
+## Build image and deploy to k8s
+
+```bash
+gradle build -Dquarkus.package.type=native -Dquarkus.native.container-build=true -Dquarkus.kubernetes.deploy=true -Dquarkus.kubernetes.deployment-target=kubernetes -Dquarkus.container-image.push=true  -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=$(git log -1 --pretty=format:%h)
+# 2023-02-02 07:58:27,844 ERROR [io.sma.rea.mes.kafka] (smallrye-kafka-producer-thread-1) SRMSG18260: Unable to recover from the serialization failure (topic: vehicle), configure a SerializationFailureHandler to recover from errors.: java.lang.RuntimeException: com.fasterxml.jackson.databind.exc.InvalidDefinitionException: No serializer found for class org.cch.model.Vehicle and no properties discovered to create BeanSerializer (to avoid exception, disable SerializationFeature.FAIL_ON_EMPTY_BEANS). This appears to be a native image, in which case you may need to configure reflection for the class that is to be serialized
+```
+
+[Resolve](https://quarkus.pro/guides/writing-native-applications-tips.html)

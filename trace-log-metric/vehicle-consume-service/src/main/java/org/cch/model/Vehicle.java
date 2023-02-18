@@ -2,6 +2,9 @@ package org.cch.model;
 
 import java.util.Date;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public class Vehicle {
      // 識別碼
     public String vehicleId;
@@ -26,4 +29,13 @@ public class Vehicle {
         this.dynamical = dynamical;
         this.timestamp = timestamp;
     }
+
+
+    @Override
+    public String toString() {
+        return "Vehicle [vehicleId=" + vehicleId + ", speed=" + speed + ", direction=" + direction + ", tachometer="
+                + tachometer + ", dynamical=" + dynamical + ", timestamp=" + timestamp + "]";
+    }
+
+    
 }

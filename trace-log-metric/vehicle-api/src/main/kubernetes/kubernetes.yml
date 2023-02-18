@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config-api
+data:
+  application.properties: |
+    quarkus.mongodb.connection-string=mongodb://vehicle-user:a123456789@vehicle-mongodb-0.vehicle-mongodb-svc.mongodb.svc.cluster.local:27017/vehicle?replicaSet=vehicle-mongodb&ssl=false&authSource=vehicle
+    quarkus.mongodb.database=vehicle
