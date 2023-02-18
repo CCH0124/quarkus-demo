@@ -14,11 +14,11 @@ spec:
       logging:
         loglevel: debug
       otlp:
-        endpoint: tempo-distributor.observability:4317
+        endpoint: tempo-distributor.observability.svc.cluster.local:4317
         tls:
           insecure: true
       loki:
-        endpoint: http://loki-loki-distributed-distributor:3100/loki/api/v1/push
+        endpoint: http://loki-loki-distributed-gateway.observability.svc.cluster.local:3100/loki/api/v1/push
         tls:
           insecure: true
 

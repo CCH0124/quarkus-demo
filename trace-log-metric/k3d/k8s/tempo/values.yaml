@@ -8,7 +8,14 @@ traces:
 
 queryFrontend:
   query:
-     enabled: true
+     enabled: false
+     resources:
+       limits:
+         cpu: 200m
+         memory: 512Mi
+       requests:
+         cpu: 100m
+         memory: 64Mi
   service:
     type: ClusterIP
     annotations: {}
