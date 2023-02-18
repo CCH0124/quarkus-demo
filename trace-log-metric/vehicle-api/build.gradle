@@ -22,6 +22,8 @@ dependencies {
     implementation 'io.quarkus:quarkus-container-image-jib'
     implementation 'io.quarkus:quarkus-micrometer'
     implementation 'io.quarkus:quarkus-arc'
+    implementation 'io.opentelemetry:opentelemetry-api:1.23.1'
+    implementation 'io.quarkus:quarkus-opentelemetry'
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
 }
