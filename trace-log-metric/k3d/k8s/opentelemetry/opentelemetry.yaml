@@ -2,6 +2,7 @@ apiVersion: opentelemetry.io/v1alpha1
 kind: OpenTelemetryCollector
 metadata:
   name: otel-my-collector
+  namespace: observability
 spec:
   mode: daemonset
   config: |
@@ -9,8 +10,11 @@ spec:
       otlp:
         protocols:
           grpc:
+                  #            endpoint: otel-my-collector-collector.observability.svc.cluster.local:4317
           http:
     exporters:
+            #      prometheus:
+            #        endpoint: http://prometheus-stack-kube-prom-prometheus:9090
       logging:
         loglevel: debug
       otlp:
@@ -49,6 +53,9 @@ spec:
     service:
       extensions:
       pipelines:
+              #        metrics:
+              #          receivers: [otlp]
+              #          exporters: [logging, prometheus]
         traces:
           receivers: [otlp]
           exporters: [logging, otlp]

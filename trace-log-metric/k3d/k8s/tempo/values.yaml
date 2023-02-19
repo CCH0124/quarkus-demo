@@ -21,7 +21,7 @@ queryFrontend:
     annotations: {}
 
 minio:
-  enabled: true
+  enabled: false
   mode: standalone
   rootUser: root
   rootPassword: root123456
