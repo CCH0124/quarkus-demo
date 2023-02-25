@@ -7,6 +7,8 @@ alertmanager:
     targetPort: 9093
     type: ClusterIP
 grafana:
+  image:
+    tag: "9.3.6"
   grafana.ini:
     feature_toggles:
         enable: tempoSearch tempoBackendSearch tempoApmTable traceToMetrics
@@ -34,19 +36,25 @@ grafana:
       type: loki
       uid: loki
       access: proxy
+      editable: true
       url: http://loki-loki-distributed-gateway
       jsonData:
          derivedFields:
            # Opentelemetry set trace_id in log and Loki search this metric for relating with Tempo traces.
-           - name: trace_id
+           - name: traceId
              datasourceUid: tempo
-             matcherRegex: "trace_id=(\\w+)"
+             matcherRegex: "traceId=(\\w+)"
              url: '$${__value.raw}'
     - name: Tempo
       type: tempo
       uid: tempo
       access: proxy
-      url: http://tempo-query-frontend:3100
+      editable: true
+      basicAuth: false
+      isDefault: false
+      version: 1
+      apiVersion: 1
+      url: http://tempo-query-frontend.observability.svc.cluster.local:3100
       jsonData:
         httpMethod: GET
         # Tempo redirects to Loki logs by specific trace_id
