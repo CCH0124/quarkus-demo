@@ -148,7 +148,7 @@ Installed components:
 預設透過 minio 來作為 storage，以模擬 S3
 
 ```bash
-/tempo$ helm install tempo grafana/tempo-distributed --version 0.27.17 --namespace observability  --create-namespace -f values.yaml
+/tempo$ helm install tempo grafana/tempo-distributed --version 1.2.0 --namespace observability  --create-namespace -f values.yaml
 ```
 
 

@@ -29,7 +29,7 @@ grafana:
       jsonData:
         exemplarTraceIdDestinations:
           # Prometheus Exemplar Metrics relationated with Tempo trace_id variable.
-          - name: trace_id
+          - name: traceId
             datasourceUid: tempo
             urlDisplayLabel: View in Tempo
     - name: Loki
@@ -37,7 +37,7 @@ grafana:
       uid: loki
       access: proxy
       editable: true
-      url: http://loki-loki-distributed-gateway
+      url: http://loki-loki-distributed-query-frontend.observability.svc.cluster.local:3100
       jsonData:
          derivedFields:
            # Opentelemetry set trace_id in log and Loki search this metric for relating with Tempo traces.

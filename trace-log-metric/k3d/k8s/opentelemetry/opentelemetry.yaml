@@ -22,7 +22,7 @@ spec:
         tls:
           insecure: true
       loki:
-        endpoint: http://loki-loki-distributed-gateway.observability.svc.cluster.local:3100/loki/api/v1/push
+        endpoint: http://loki-loki-distributed-distributor.observability.svc.cluster.local:3100/loki/api/v1/push
         tls:
           insecure: true
 
@@ -30,23 +30,24 @@ spec:
       attributes:
         actions:
         - action: insert
-          key: loki.attribute.labels
-          value: http_status_code
+          key: event_domain
+          from_attribute: event.domain
         - action: insert
-          key: http_status_code
-          value: 500
-    
+          key: loki.attribute.labels
+          value: event_domain
+
       resource:
         attributes:
         - action: insert
+          key: service_name
+          from_attribute: service.name
+        - action: insert
+          key: service_namespace
+          from_attribute: service.namespace
+        - action: insert
           key: loki.resource.labels
-          value: host_name, pod_name
-        - action: insert
-          key: host_name
-          value: guarana
-        - action: insert
-          key: pod_name
-          value: guarana-pod-01
+          value: service_name, service_namespace
+
     
     extensions:
     
