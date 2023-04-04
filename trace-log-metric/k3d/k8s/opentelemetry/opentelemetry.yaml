@@ -22,7 +22,7 @@ spec:
         tls:
           insecure: true
       loki:
-        endpoint: http://loki-loki-distributed-distributor.observability.svc.cluster.local:3100/loki/api/v1/push
+        endpoint: http:/loki-loki-distributed-gateway.observability.svc.cluster.local/loki/api/v1/push
         tls:
           insecure: true
 

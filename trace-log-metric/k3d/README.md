@@ -1,15 +1,23 @@
-Loki (logs)
-Promtail (log agent)
-Tempo (traces)
-Prometheus (metrics)
-Alertmanager (handles alerts sent by Prometheus)
-Grafana (visualization)
+- k3d
+- Helm
+- Loki (logs)
+- Promtail (log agent)
+- Tempo (traces)
+- Prometheus (metrics)
+- Alertmanager (handles alerts sent by Prometheus)
+- Grafana (visualization)
+- mongodb
+- kafka
 
 1. install k3d config
 ```bash
-k3d cluster create -c config.yaml --servers-memory 12G
+$ k3d cluster create -c config.yaml --servers-memory 10G
+$ kubectl config current-context # 預設理論上會幫你把 kubectl 連線位置指向 k3d 建立出來的 cluster
+k3d-observable-cluster
 ```
 2. Install Ingress
+
+因為我們把預設的 ingress controller 拔掉了，所以我們就安裝 ingress controller
 
 ```bash
 $ helm repo add ingress-nginx  https://kubernetes.github.io/ingress-nginx
@@ -36,39 +44,70 @@ replicaset.apps/ingress-nginx-controller-7d5fb757db   1         1         1     
 
 ```bash
 $ helm repo add grafana https://grafana.github.io/helm-charts
+$ helm repo update grafana
 $ helm search repo grafana
 NAME                                            CHART VERSION   APP VERSION             DESCRIPTION
-grafana/grafana                                 6.50.0          9.3.1                   The leading tool for querying and visualizing t...
-grafana/grafana-agent                           0.2.1           v0.30.2                 Grafana Agent
-grafana/grafana-agent-operator                  0.2.8           0.28.0                  A Helm chart for Grafana Agent Operator
+grafana/grafana                                 6.52.5          9.4.3                   The leading tool for querying and visualizing t...
+grafana/grafana-agent                           0.10.0          v0.32.1                 Grafana Agent
+grafana/grafana-agent-operator                  0.2.15          0.32.1                  A Helm chart for Grafana Agent Operator
 infuseai/primehub-grafana-dashboard-basic       1.3.0           v1.3.0                  Primehub Grafana Dashboard Basic
 grafana/enterprise-logs                         2.4.3           v1.5.2                  Grafana Enterprise Logs
 grafana/enterprise-logs-simple                  1.2.1           v1.4.0                  DEPRECATED Grafana Enterprise Logs (Simple Scal...
 grafana/enterprise-metrics                      1.9.0           v1.7.0                  DEPRECATED Grafana Enterprise Metrics
-grafana/fluent-bit                              2.3.2           v2.1.0                  Uses fluent-bit Loki go plugin for gathering lo...
-grafana/loki                                    3.10.0          2.7.0                   Helm chart for Grafana Loki in simple, scalable...
-grafana/loki-canary                             0.10.0          2.6.1                   Helm chart for Grafana Loki Canary
-grafana/loki-distributed                        0.69.0          2.7.1                   Helm chart for Grafana Loki in microservices mode
+grafana/fluent-bit                              2.5.0           v2.1.0                  Uses fluent-bit Loki go plugin for gathering lo...
+grafana/loki                                    5.0.0           2.8.0                   Helm chart for Grafana Loki in simple, scalable...
+grafana/loki-canary                             0.11.0          2.7.4                   Helm chart for Grafana Loki Canary
+grafana/loki-distributed                        0.69.10         2.7.5                   Helm chart for Grafana Loki in microservices mode
 grafana/loki-simple-scalable                    1.8.11          2.6.1                   Helm chart for Grafana Loki in simple, scalable...
-grafana/loki-stack                              2.8.9           v2.6.1                  Loki: like Prometheus, but for logs.
-grafana/mimir-distributed                       4.0.1           2.5.0                   Grafana Mimir
+grafana/loki-stack                              2.9.10          v2.6.1                  Loki: like Prometheus, but for logs.
+grafana/mimir-distributed                       4.3.0           2.7.1                   Grafana Mimir
 grafana/mimir-openshift-experimental            2.1.0           2.0.0                   Grafana Mimir on OpenShift Experiment
-grafana/oncall                                  1.1.0           v1.1.5                  Developer-friendly incident response with brill...
-grafana/phlare                                  0.1.2           0.1.1                   🔥 horizontally-scalable, highly-available, mul...
-grafana/promtail                                6.8.1           2.7.1                   Promtail is an agent which ships the contents o...
-grafana/rollout-operator                        0.2.0           v0.2.0                  Grafana rollout-operator
+grafana/oncall                                  1.2.7           v1.2.7                  Developer-friendly incident response with brill...
+grafana/phlare                                  0.5.3           0.5.1                   🔥 horizontally-scalable, highly-available, mul...
+grafana/promtail                                6.10.0          2.7.4                   Promtail is an agent which ships the contents o...
+grafana/rollout-operator                        0.4.1           v0.4.0                  Grafana rollout-operator
 grafana/synthetic-monitoring-agent              0.1.0           v0.9.3-0-gcd7aadd       Grafana's Synthetic Monitoring application. The...
-grafana/tempo                                   0.16.8          1.5.0                   Grafana Tempo Single Binary Mode
-grafana/tempo-distributed                       0.27.17         1.5.0                   Grafana Tempo in MicroService mode
-grafana/tempo-vulture                           0.2.1           1.3.0                   Grafana Tempo Vulture - A tool to monitor Tempo...
+grafana/tempo                                   1.0.3           2.0.1                   Grafana Tempo Single Binary Mode
+grafana/tempo-distributed                       1.2.9           2.0.1                   Grafana Tempo in MicroService mode
+grafana/tempo-vulture                           0.2.2           1.3.0                   Grafana Tempo Vulture - A tool to monitor Tempo...
+prometheus-community/kube-prometheus-stack      44.0.0          v0.62.0                 kube-prometheus-stack collects Kubernetes manif...
+prometheus-community/prometheus-druid-exporter  1.0.0           v0.11.0                 Druid exporter to monitor druid metrics with Pr...
 ```
 
-4. Install promtail
+4. Install loki
 
 ```bash
-/k3d/k8s/promtail$ helm install promtail grafana/promtail --version 6.8.1  --namespace observability  --create-namespace -f values.yaml
+$ helm show values --version 0.69.10 grafana/loki-distributed > values.yaml
+/k3d/k8s/loki$ helm install loki grafana/loki-distributed --version 0.69.10 --namespace observability  --create-namespace -f values.yaml
+NAME: loki
+LAST DEPLOYED: Tue Apr  4 16:53:29 2023
+NAMESPACE: observability
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+***********************************************************************
+ Welcome to Grafana Loki
+ Chart version: 0.69.10
+ Loki version: 2.7.5
+***********************************************************************
+
+Installed components:
+* gateway
+* ingester
+* distributor
+* querier
+* query-frontend
+* compactor
+```
+
+
+5. Install promtail
+
+```bash
+/k3d/k8s/promtail$ helm install promtail grafana/promtail --version 6.10.0  --namespace observability  --create-namespace -f values.yaml
 NAME: promtail
-LAST DEPLOYED: Sat Jan 14 16:54:47 2023
+LAST DEPLOYED: Tue Apr  4 16:59:27 2023
 NAMESPACE: observability
 STATUS: deployed
 REVISION: 1
@@ -76,26 +115,58 @@ TEST SUITE: None
 NOTES:
 ***********************************************************************
  Welcome to Grafana Promtail
- Chart version: 6.8.1
- Promtail version: 2.7.1
+ Chart version: 6.10.0
+ Promtail version: 2.7.4
 ***********************************************************************
 
 Verify the application is working by running these commands:
 * kubectl --namespace observability port-forward daemonset/promtail 3101
 * curl http://127.0.0.1:3101/metrics
 ```
-5. Install Prometheus、Grafana
+
+6. Install Tempo
+
+預設透過 minio 來作為 storage，以模擬 S3
+
+```bash
+/tempo$ helm install tempo grafana/tempo-distributed --version 1.2.9 --namespace observability  --create-namespace -f values.yaml
+NAME: tempo
+LAST DEPLOYED: Tue Apr  4 17:05:52 2023
+NAMESPACE: observability
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+***********************************************************************
+ Welcome to Grafana Tempo
+ Chart version: 1.2.9
+ Tempo version: 2.0.1
+***********************************************************************
+
+Installed components:
+* ingester
+* distributor
+* querier
+* query-frontend
+* compactor
+* memcached
+```
+
+7. Install Prometheus、Grafana
 
 ```bash
 $ helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-$ /kube-prometheus-stack$ helm install prometheus-stack prometheus-community/kube-prometheus-stack  --version 44.0.0 --namespace observability  --create-namespace -f value.yaml
+$ helm repo update prometheus-community
+/kube-prometheus-stack$ helm install prometheus-stack prometheus-community/kube-prometheus-stack  --version 45.8.1 --namespace observability  --create-namespace -f value.yaml
 $ kubectl get ingress -n observability
-NAME                                    CLASS   HOSTS                ADDRESS                            PORTS   AGE
-prometheus-stack-grafana                nginx   grafana.cch.com      172.19.0.2,172.19.0.3,172.19.0.4   80      6m6s
-prometheus-stack-kube-prom-prometheus   nginx   prometheus.cch.com   172.19.0.2,172.19.0.3,172.19.0.4   80      15s
+NAME                                      CLASS   HOSTS                ADDRESS                                       PORTS   AGE
+prometheus-stack-grafana                  nginx   grafana.cch.com      172.19.0.2,172.19.0.3,172.19.0.4,172.19.0.5   80      7m11s
+prometheus-stack-kube-prom-prometheus     nginx   prometheus.cch.com   172.19.0.2,172.19.0.3,172.19.0.4,172.19.0.5   80      7m11s
+prometheus-stack-kube-prom-alertmanager   nginx   alert.cch.com        172.19.0.2,172.19.0.3,172.19.0.4,172.19.0.5   80      7m11s
 ```
 
-6. Install Opentelemetry
+
+8. Install Opentelemetry
 
 first Install  cert-manager
 ```bash
@@ -118,54 +189,22 @@ $ helm install opentelemetry-operator open-telemetry/opentelemetry-operator --ve
 /k8s/opentelemetry$ kubectl -n observability apply -f opentelemetry.yaml # 用 daemonSet
 ```
 
-7. Install loki
+## mongodb
 
 ```bash
-/k3d/k8s/loki$ helm install loki grafana/loki-distributed --version 0.69.0  --namespace observability  --create-namespace -f values.yaml
-NAME: loki
-LAST DEPLOYED: Sat Jan 14 17:08:04 2023
-NAMESPACE: observability
-STATUS: deployed
-REVISION: 1
-TEST SUITE: None
-NOTES:
-***********************************************************************
- Welcome to Grafana Loki
- Chart version: 0.69.0
- Loki version: 2.7.1
-***********************************************************************
-
-Installed components:
-* gateway
-* ingester
-* distributor
-* querier
-* query-frontend
+$ helm repo add mongodb https://mongodb.github.io/helm-charts
+$ helm repo update mongodb
+$ helm install community-operator mongodb/community-operator --set community-operator-crds.enabled=true --namespace mongodb --create-namespace
+~/quarkus/trace-log-metric/k3d/k8s/mongo$ kubectl apply -f .
 ```
-
-8. Install Tempo
-
-預設透過 minio 來作為 storage，以模擬 S3
-
-```bash
-/tempo$ helm install tempo grafana/tempo-distributed --version 1.2.0 --namespace observability  --create-namespace -f values.yaml
-```
-
 
 ## Kafka 
 
 ```bash
 $ helm repo add strimzi https://strimzi.io/charts/
-$ helm install kafka-operator strimzi/strimzi-kafka-operator --version 0.33.0 --namespace dev --create-namespace
+$ helm install kafka-operator strimzi/strimzi-kafka-operator --version 0.34.0 --namespace dev --create-namespace
 ```
 
 ```bash
 /k3d/k8s/kafka$ kubectl apply -f .
-```
-
-8. Install Mongo
-
-```bash
-$ helm repo add mongodb https://mongodb.github.io/helm-charts
-$ helm install community-operator mongodb/community-operator --version  0.7.8 --namespace mongodb --create-namespace
 ```

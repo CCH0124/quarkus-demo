@@ -1,37 +1,105 @@
 alertmanager:
   enabled: true
   ingress:
-    enabled: false
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - alert.cch.com
+    paths:
+      - /
+    pathType: Prefix
   service:
     port: 9093
     targetPort: 9093
     type: ClusterIP
+  alertmanagerSpec:
+    image:
+      registry: quay.io
+      repository: prometheus/alertmanager
+      tag: v0.25.0
+    routePrefix: /
+    resources:
+      limits:
+        memory: "400Mi"
 grafana:
-  image:
-    tag: "9.3.6"
-  grafana.ini:
-    feature_toggles:
-        enable: tempoSearch tempoBackendSearch tempoApmTable traceToMetrics
-  enabled: true
+  enable: true
+  defaultDashboardsTimezone: Asia/Taipei
+  adminPassword: prom-operator
   ingress:  
     enabled: true
     ingressClassName: nginx
     hosts:
       - grafana.cch.com
-    path: /
-  defaultDashboardsTimezone: Asia/Taipei
-  additionalDataSources:
-    - name: Prometheus
-      type: prometheus
+    paths:
+      - path: /
+        pathType: Prefix
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+    datasources:
+      enabled: true
+      defaultDatasourceEnabled: true
+      isDefaultDatasource: true
       uid: prometheus
-      access: proxy
-      url: http://prometheus-stack-kube-prom-prometheus:9090
-      jsonData:
-        exemplarTraceIdDestinations:
-          # Prometheus Exemplar Metrics relationated with Tempo trace_id variable.
-          - name: traceId
-            datasourceUid: tempo
-            urlDisplayLabel: View in Tempo
+      exemplarTraceIdDestinations:
+        datasourceUid: tempo
+        traceIdLabelName: traceId
+  image:
+    repository: grafana/grafana
+    # Overrides the Grafana image tag whose default is the chart appVersion
+    tag: "9.4.7"
+    pullPolicy: IfNotPresent
+  readinessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+  livenessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 60
+    timeoutSeconds: 30
+    failureThreshold: 10
+  resources: 
+    limits:
+      cpu: 100m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  grafana.ini:
+    feature_toggles:
+        enable: tempoSearch tempoBackendSearch tempoApmTable traceToMetrics
+    paths:
+      data: /var/lib/grafana/
+      logs: /var/log/grafana
+      plugins: /var/lib/grafana/plugins
+      provisioning: /etc/grafana/provisioning
+    analytics:
+      check_for_updates: true
+    log:
+      mode: console
+    grafana_net:
+      url: https://grafana.net
+    server:
+      domain: "{{ if (and .Values.ingress.enabled .Values.ingress.hosts) }}{{ .Values.ingress.hosts | first }}{{ else }}''{{ end }}"
+  additionalDataSources:
+  #   - name: Prometheus
+  #     type: prometheus
+  #     uid: prometheus
+  #     access: proxy
+  #     url: http://prometheus-stack-kube-prom-prometheus:9090
+  #     jsonData:
+  #       httpMethod: POST
+  #       manageAlerts: true
+  #       prometheusType: Prometheus
+  #       exemplarTraceIdDestinations:
+  #         # Prometheus Exemplar Metrics relationated with Tempo trace_id variable.
+  #         - name: traceId
+  #           datasourceUid: tempo
+  #           urlDisplayLabel: View in Tempo
     - name: Loki
       type: loki
       uid: loki
@@ -79,8 +147,15 @@ prometheus:
       - prometheus.cch.com
     paths:
       - /
+    pathType: Prefix
   prometheusSpec:
+    image:
+      registry: quay.io
+      repository: prometheus/prometheus
+      tag: v2.42.0
     enableRemoteWriteReceiver: true
+    exemplars: 
+      maxSize: 100000
     enableFeatures:
         - exemplar-storage
     additionalScrapeConfigs: |

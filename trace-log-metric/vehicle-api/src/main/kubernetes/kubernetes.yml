@@ -7,7 +7,7 @@ data:
     quarkus.mongodb.connection-string=mongodb://vehicle-user:a123456789@vehicle-mongodb-0.vehicle-mongodb-svc.mongodb.svc.cluster.local:27017/vehicle?replicaSet=vehicle-mongodb&ssl=false&authSource=vehicle
     quarkus.mongodb.database=vehicle
     quarkus.opentelemetry.enabled=true
-    quarkus.opentelemetry.tracer.exporter.otlp.endpoint=http://otel-my-collector-collector.observability.svc.cluster.local:4317 
+    quarkus.opentelemetry.tracer.exporter.otlp.endpoint=http://tempo-distributor.observability.svc.cluster.local:4317
     quarkus.opentelemetry.tracer.resource-attributes=app=${quarkus.application.name}
 
 

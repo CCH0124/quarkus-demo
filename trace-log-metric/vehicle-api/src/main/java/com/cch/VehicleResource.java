@@ -3,6 +3,7 @@ package com.cch;
 import java.util.List;
 import java.util.Objects;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -14,6 +15,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.jboss.logging.Logger;
+
 import com.cch.model.Vehicle;
 import com.oracle.svm.core.annotate.Delete;
 
@@ -24,10 +27,14 @@ import io.quarkus.panache.common.Sort;
 @Consumes(MediaType.APPLICATION_JSON)
 public class VehicleResource {
 
+    @Inject
+    Logger log;
+
     @Delete
     @Path("/{id}")
     public Response delete(@PathParam("id") String vehicleId) {
         Vehicle.deleteFromVehicleId(vehicleId);
+        log.infof("Delete Vehicle ID: {0}", vehicleId);
         return Response.accepted().build();
     }
 
@@ -42,6 +49,7 @@ public class VehicleResource {
             direction = Sort.Direction.Descending;
         }
        List<Vehicle> findByVehivleId = Vehicle.findByVehicleId(vehicleId, page, size, direction);
+       log.infof("Find Vehicle ID: {0}", vehicleId);
         if (findByVehivleId.size() == 0) {
             return Response.status(Status.NOT_FOUND).build();
         }

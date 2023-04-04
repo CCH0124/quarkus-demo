@@ -11,5 +11,6 @@ data:
     mp.messaging.incoming.brands.topic=brand
     mp.messaging.incoming.brands.auto.offset.reset=earliest
     mp.messaging.incoming.brands.connector=smallrye-kafka
+    mp.messaging.incoming.played-vehicles.value.deserializer=org.cch.deserializer.VehicleDeserializer
     kafka-bootstrap.servers=my-cluster-kafka-bootstrap.dev.svc.cluster.local:9092
     quarkus.mongodb.connection-string=mongodb://vehicle-user:a123456789@vehicle-mongodb-0.vehicle-mongodb-svc.mongodb.svc.cluster.local:27017/vehicle?replicaSet=vehicle-mongodb&ssl=false&authSource=vehicle
