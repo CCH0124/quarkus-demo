@@ -86,20 +86,20 @@ grafana:
     server:
       domain: "{{ if (and .Values.ingress.enabled .Values.ingress.hosts) }}{{ .Values.ingress.hosts | first }}{{ else }}''{{ end }}"
   additionalDataSources:
-  #   - name: Prometheus
-  #     type: prometheus
-  #     uid: prometheus
-  #     access: proxy
-  #     url: http://prometheus-stack-kube-prom-prometheus:9090
-  #     jsonData:
-  #       httpMethod: POST
-  #       manageAlerts: true
-  #       prometheusType: Prometheus
-  #       exemplarTraceIdDestinations:
-  #         # Prometheus Exemplar Metrics relationated with Tempo trace_id variable.
-  #         - name: traceId
-  #           datasourceUid: tempo
-  #           urlDisplayLabel: View in Tempo
+    - name: Prometheus
+      type: prometheus
+      uid: prometheus
+      access: proxy
+      url: http://prometheus-stack-kube-prom-prometheus:9090
+      jsonData:
+        httpMethod: POST
+        manageAlerts: true
+        prometheusType: Prometheus
+        exemplarTraceIdDestinations:
+          # Prometheus Exemplar Metrics relationated with Tempo trace_id variable.
+          - name: traceId
+            datasourceUid: tempo
+            urlDisplayLabel: View in Tempo
     - name: Loki
       type: loki
       uid: loki

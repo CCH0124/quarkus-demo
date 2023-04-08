@@ -12,11 +12,12 @@ import io.prometheus.client.exemplars.tracer.otel_agent.OpenTelemetryAgentSpanCo
 
 @ApplicationScoped
 public class PrometheusExemplarConfiguration {
-    
-    public PrometheusMeterRegistry prometheusMeterRegistryWithExemplar (PrometheusConfig prometheusConfig, CollectorRegistry collectorRegistry, 
-    Clock clock) {
-        return new PrometheusMeterRegistry(prometheusConfig, collectorRegistry, 
-        clock, new DefaultExemplarSampler(new OpenTelemetryAgentSpanContextSupplier() {
+
+    public PrometheusMeterRegistry prometheusMeterRegistryWithExemplar(PrometheusConfig prometheusConfig,
+            CollectorRegistry collectorRegistry,
+            Clock clock) {
+        return new PrometheusMeterRegistry(prometheusConfig, collectorRegistry,
+                clock, new DefaultExemplarSampler(new OpenTelemetryAgentSpanContextSupplier() {
 
                     @Override
                     public String getTraceId() {
@@ -25,7 +26,6 @@ public class PrometheusExemplarConfiguration {
                         }
                         return super.getTraceId();
                     }
-                })
-        );
+                }));
     }
 }

@@ -24,6 +24,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-arc'
     implementation 'io.opentelemetry:opentelemetry-api:1.23.1'
     implementation 'io.quarkus:quarkus-opentelemetry'
+    // implementation 'io.opentelemetry.instrumentation:opentelemetry-jdbc'
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
 }
