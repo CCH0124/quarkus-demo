@@ -2,6 +2,7 @@ apiVersion: opentelemetry.io/v1alpha1
 kind: OpenTelemetryCollector
 metadata:
   name: otel-my-collector
+  namespace: observability
 spec:
   mode: daemonset
   config: |
@@ -9,16 +10,19 @@ spec:
       otlp:
         protocols:
           grpc:
+                  #            endpoint: otel-my-collector-collector.observability.svc.cluster.local:4317
           http:
     exporters:
+            #      prometheus:
+            #        endpoint: http://prometheus-stack-kube-prom-prometheus:9090
       logging:
         loglevel: debug
       otlp:
-        endpoint: tempo-distributor.observability:4317
+        endpoint: tempo-distributor.observability.svc.cluster.local:4317
         tls:
           insecure: true
       loki:
-        endpoint: http://loki-loki-distributed-distributor:3100/loki/api/v1/push
+        endpoint: http:/loki-loki-distributed-gateway.observability.svc.cluster.local/loki/api/v1/push
         tls:
           insecure: true
 
@@ -26,29 +30,33 @@ spec:
       attributes:
         actions:
         - action: insert
-          key: loki.attribute.labels
-          value: http_status_code
+          key: event_domain
+          from_attribute: event.domain
         - action: insert
-          key: http_status_code
-          value: 500
-    
+          key: loki.attribute.labels
+          value: event_domain
+
       resource:
         attributes:
         - action: insert
+          key: service_name
+          from_attribute: service.name
+        - action: insert
+          key: service_namespace
+          from_attribute: service.namespace
+        - action: insert
           key: loki.resource.labels
-          value: host_name, pod_name
-        - action: insert
-          key: host_name
-          value: guarana
-        - action: insert
-          key: pod_name
-          value: guarana-pod-01
+          value: service_name, service_namespace
+
     
     extensions:
     
     service:
       extensions:
       pipelines:
+              #        metrics:
+              #          receivers: [otlp]
+              #          exporters: [logging, prometheus]
         traces:
           receivers: [otlp]
           exporters: [logging, otlp]
