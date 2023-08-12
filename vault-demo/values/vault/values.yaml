@@ -1,6 +1,6 @@
 global:
   enabled: true
-  tlsDisable: false
+  tlsDisable: true
 
 injector:
   enabled: true
@@ -8,14 +8,18 @@ injector:
   image:
     repository: "hashicorp/vault-k8s"
     pullPolicy: IfNotPresent
-
+  agentDefaults:
+    cpuLimit: "500m"
+    cpuRequest: "250m"
+    memLimit: "128Mi"
+    memRequest: "64Mi"
   resources:
-      requests:
-        memory: 50Mi
-        cpu: 50m
-      limits:
-        memory: 256Mi
-        cpu: 250m
+    requests:
+      memory: 50Mi
+      cpu: 50m
+    limits:
+      memory: 256Mi
+      cpu: 250m
 
 server:
   image:
@@ -27,19 +31,22 @@ server:
   resources:
     requests:
       memory: 50Mi
-      cpu: 500m
+      cpu: 250m
     limits:
-      memory: 16Gi
-      cpu: 2000m
-  
+      memory: 512Mi
+      cpu: 500m
+
   ingress:
     enabled: true
     hosts:
       - host: vault-demo.cch.com
+    ingressClassName: "nginx"
+    pathType: Prefix
 
   # shareProcessNamespace enables process namespace sharing between Vault and the extraContainers
   # This is useful if Vault must be signaled, e.g. to send a SIGHUP for a log rotation
   shareProcessNamespace: false
+  
   service:
     enabled: true
 
@@ -62,3 +69,9 @@ server:
 ui:
   enabled: true
   externalPort: 8200
+
+csi:
+  enabled: true
+  image:
+    repository: "hashicorp/vault-csi-provider"
+    pullPolicy: IfNotPresent
