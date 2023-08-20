@@ -263,6 +263,150 @@ destroyed        false
 
 ## Defined role access to quarkus/vault-demo
 
+以此範例來說應用程式只想要存取 `quarkus/vault-demo` 這個路徑下的 `k/v` 資源，因此要給予適當權限
+
+```bash
+# policy.hcl
+path "kv/data/quarkus/vault-demo" {
+    capabilities = ["read"]
+}
+```
+寫入權限至 Vault 服務中
+```bash
+$ vault policy write vault policy.hcl
+Success! Uploaded policy: vault
+$ vault policy list
+default
+vault # 建立的 policy 名稱是 vault
+root
+```
+
+有了權限還不夠。截至當前都是使用 `root` 的 `token` 做操作，應用程式的存取不應該使用 `root` 權限進行操作，因此需要再定義一個屬於應用程式存取的 `token`。
+
+透過 `token create` 建立一個 `token`，並賦予該有的權限，時效可用 `ttl` 設定。`token lookup` 可以查看該 `token` 內容像是過期時間(expire_time)、可存取的政策(policies)等等。
+
+```bash
+$ vault token create -policy=vault --ttl=768h
+Key                  Value
+---                  -----
+token                hvs.CAESIIDXLAV0-_yh1VJjVQkDxojDEP54lTfT0Y-UsVEBJKBhGh4KHGh2cy5lRFRMeFpBSmpGMGo2ZXRNR0RsTDh3UmI
+token_accessor       KqbfPMrF6pmmFLb4n7E1niob
+token_duration       768h
+token_renewable      true
+token_policies       ["default" "vault"]
+identity_policies    []
+policies             ["default" "vault"]
+
+$ vault token lookup -accessor KqbfPMrF6pmmFLb4n7E1niob
+Key                 Value
+---                 -----
+accessor            KqbfPMrF6pmmFLb4n7E1niob
+creation_time       1692449442
+creation_ttl        768h
+display_name        token
+entity_id           n/a
+expire_time         2023-09-20T12:50:42.985961541Z
+explicit_max_ttl    0s
+id                  n/a
+issue_time          2023-08-19T12:50:42.985964311Z
+meta                <nil>
+num_uses            0
+orphan              false
+path                auth/token/create
+policies            [default vault]
+renewable           true
+ttl                 767h59m36s
+type                service
+```
+
+對於 `token` 預設系統 `TTL` 值是 `768h` 如下。
+
+```bash
+$ vault read sys/auth/token/tune
+Key                  Value
+---                  -----
+default_lease_ttl    768h
+description          token based credentials
+force_no_cache       false
+max_lease_ttl        768h
+token_type           default-service
+```
+
+要針對 TTL 進行調整可以使用以下方式
+
+```bash
+$ vault write sys/auth/token/tune default_lease_ttl=8h max_lease_ttl=720h
+```
 
 ## Quarkus 整合
-Quarkus 使用 `io.quarkiverse.vault:quarkus-vault` 第三方套件整合 Vault，接續將會實作整合部分。
+
+上面章節透過 Vault 的 `secret` 服務建立一個可存放 k/v 物件的資源並將重要的資源存放至該 `secret` 服務。同時間，建立了一個 policy 資源並將其和 token 資源綁在一起給應用程式做存取。
+
+此章節會透過 Quarkus 框架與 Vault 進行一個整合範例。會分成兩部分來說明
+
+1. 地端開發
+2. 佈署至 Kubernetes 環境
+
+Quarkus 使用 `io.quarkiverse.vault:quarkus-vault` 第三方套件整合 Vault，接續將會實作整合部分。範例中簡單的使用外部環境變數，如下
+
+```bash
+mqtt.broker=
+mqtt.username=
+mqtt.password=
+```
+
+### 地端開發
+這邊再進行 Vault 存取的配置來讓 Vault 進行環境變數的注入。因為 `SSL` 非正式所以這邊使用了 `quarkus.tls.trust-all=true` 來進行信任。重點是下面配置
+
+1. `quarkus.vault.authentication.client-token` 表示使用 `token` 方式對 Vault 進行存取
+2. `quarkus.vault.url` 表示存取 Vault 的位置
+3. `quarkus.vault.kv-secret-engine-mount-path` 啟用 secret 中的 kv 引擎掛載的路徑
+4. `quarkus.vault.secret-config-kv-path` 掛載路徑下要存取的子路徑
+5. `quarkus.vault.kv-secret-engine-version` 使用的版本，預設是 `2`
+
+```bash
+quarkus.vault.authentication.client-token=hvs.CAESIIDXLAV0-_yh1VJjVQkDxojDEP54lTfT0Y-UsVEBJKBhGh4KHGh2cy5lRFRMeFpBSmpGMGo2ZXRNR0RsTDh3UmI
+quarkus.vault.url=https://vault-demo.cch.com:8453
+quarkus.vault.kv-secret-engine-mount-path=kv
+quarkus.vault.secret-config-kv-path=quarkus/vault-demo
+quarkus.vault.kv-secret-engine-version=2
+```
+
+驗證方面，寫了一個 API 接口，透過該接口可以驗證是否從 Vault 的 kv 引擎獲取資源
+
+```java
+    @GET
+    @Path("/mqtt/config")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response config() {
+        return Response.ok(Map.of("url", mqttConnect.broker())).build();
+    } 
+```
+
+最後運行應用程式，嘗試存取 `/hello/mqtt/config` 接口如下，可以看出他確實拿到了資源。
+
+```bash
+$ curl http://localhost:8080/hello/mqtt/config
+{"url":"tcp://localhost:8883"}
+```
+
+對於地端來說雖然 `quarkus.vault.authentication.client-token` 的值已經有限制權限和時效，但還是會習慣把 `quarkus.vault.authentication.client-token` 放置 `.env` 檔案中，這樣基本上原始碼不會出現關於存取 Vault 服務 API 的資源。
+ 
+### Kubernetes 環境
+
+對於佈署至 Kubernetes 環境，Vault 提供了用 `serviceAccount` 的 `token` 存取 Vault 服務的功能。相較於使用上面 `token` 方式，會比較靈活很多，像是不必特別管理 token 是否會過期之類。
+
+要使用 Kubernetes 認證必須執行以下，這邊會使用 root 權限進行操作
+1. 啟用該功能
+```bash
+$ vault auth enable kubernetes
+Success! Enabled kubernetes auth method at: kubernetes/
+```
+
+2. 用 `/config` 介面配置 Vault 與 Kubernetes 的通訊，使用 Pod 的 `serviceAccount` 的 token。 Vault 將定期重新讀取該檔案以支援短期令牌(short-lived tokens)。這樣 Vault 將嘗試從預設掛載位置 `/var/run/secrets/kubernetes.io/serviceaccount/` 內的 `token` 和 `ca.crt`` 加載它們。
+
+```bash
+$ vault write auth/kubernetes/config \
+    kubernetes_host=https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT
+Success! Data written to: auth/kubernetes/config
+```
