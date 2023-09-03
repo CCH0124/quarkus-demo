@@ -365,12 +365,13 @@ mqtt.password=
 5. `quarkus.vault.kv-secret-engine-version` 使用的版本，預設是 `2`
 
 ```bash
-quarkus.vault.authentication.client-token=hvs.CAESIIDXLAV0-_yh1VJjVQkDxojDEP54lTfT0Y-UsVEBJKBhGh4KHGh2cy5lRFRMeFpBSmpGMGo2ZXRNR0RsTDh3UmI
+%dev.quarkus.vault.authentication.client-token=hvs.CAESIIDXLAV0-_yh1VJjVQkDxojDEP54lTfT0Y-UsVEBJKBhGh4KHGh2cy5lRFRMeFpBSmpGMGo2ZXRNR0RsTDh3UmI
 quarkus.vault.url=https://vault-demo.cch.com:8453
 quarkus.vault.kv-secret-engine-mount-path=kv
 quarkus.vault.secret-config-kv-path=quarkus/vault-demo
 quarkus.vault.kv-secret-engine-version=2
 ```
+這邊的 `%dev` 是指在 `dev` 環境使用。
 
 驗證方面，寫了一個 API 接口，透過該接口可以驗證是否從 Vault 的 kv 引擎獲取資源
 
@@ -403,10 +404,70 @@ $ vault auth enable kubernetes
 Success! Enabled kubernetes auth method at: kubernetes/
 ```
 
-2. 用 `/config` 介面配置 Vault 與 Kubernetes 的通訊，使用 Pod 的 `serviceAccount` 的 token。 Vault 將定期重新讀取該檔案以支援短期令牌(short-lived tokens)。這樣 Vault 將嘗試從預設掛載位置 `/var/run/secrets/kubernetes.io/serviceaccount/` 內的 `token` 和 `ca.crt`` 加載它們。
+2. 用 `/config` 介面配置 Vault 與 Kubernetes 的通訊，使用 Pod 的 `serviceAccount` 的 token。 Vault 將定期重新讀取該檔案以支援短期令牌(short-lived tokens)。這樣 Vault 將嘗試從預設掛載位置 `/var/run/secrets/kubernetes.io/serviceaccount/` 內的 `token` 和 `ca.crt` 加載它們。
 
 ```bash
 $ vault write auth/kubernetes/config \
     kubernetes_host=https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT
 Success! Data written to: auth/kubernetes/config
 ```
+
+`$KUBERNETES_SERVICE_HOST` 與 `$KUBERNETES_SERVICE_PORT` 是環境變數，需替代真實的值，本人測試時環境變數似乎無法被系統替代。
+
+
+3. 設定允許被存取的 `namespace` 與 `serviceAccount`
+
+```bash
+$ vault write auth/kubernetes/role/quarkus-vault \
+> bound_service_account_names=vault \
+> bound_service_account_namespaces=prod \
+> policies=vault \
+> ttl=1h
+Success! Data written to: auth/kubernetes/role/quarkus-vault
+```
+
+- `quarkus-vault` 是角色名稱，應用程式存取用此角色
+- `bound_service_account_names` 可使用該角色的 `serviceAccout` (Kubernetes 資源)
+- `bound_service_account_namespaces` 可使用該角色的 `namespace` (Kubernetes 資源)
+- `policies` 該角色綁定的政策，這邊會對應上面所設定的政策
+
+一個角色能被多個 kubernetes 中的 namespace 下的多個 serviceAccount 資源所使用，政策同樣也可以綁定多個。
+
+
+設定好之後，需覆寫應用程式的配置，修正後應當如下
+
+```bash
+%prod.quarkus.vault.url=http://vault.vault.svc.cluster.local:8200
+%prod.quarkus.vault.authentication.kubernetes.role=quarkus-vault
+```
+
+接著透過佈署應用程式測試，應用程式佈署資源如下
+
+```bash
+$ kubectl get all -n prod
+NAME                         READY   STATUS    RESTARTS   AGE
+pod/vault-76cfcb466f-s6z2m   1/1     Running   0          6m15s
+
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/vault   ClusterIP   10.43.236.207   <none>        8080/TCP   34m
+
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/vault   1/1     1            1           34m
+
+NAME                               DESIRED   CURRENT   READY   AGE
+replicaset.apps/vault-76cfcb466f   1         1         1       34m
+$ kubectl get ingress -n prod
+NAME    CLASS   HOSTS                ADDRESS                            PORTS   AGE
+vault   nginx   vault-demo.cch.com   172.18.0.2,172.18.0.3,172.18.0.4   80      35m
+```
+
+測試
+
+```bash
+$ curl http://vault-demo.cch.com:8050/api/v1/hello/mqtt/config
+{"url":"tcp://localhost:8883"}
+```
+
+這邊，應用程式透過了 Vault 中 kubernete 認證方式對 Vault 進行存取，而非 `token` 認證。
+
+但對於應用程式存取 Vault 除了透過框架提供的方式，還可以使用 Vault 的 sidecar 方式，下面就來做一個演示。
