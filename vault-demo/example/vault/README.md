@@ -470,4 +470,4 @@ $ curl http://vault-demo.cch.com:8050/api/v1/hello/mqtt/config
 
 這邊，應用程式透過了 Vault 中 kubernete 認證方式對 Vault 進行存取，而非 `token` 認證。
 
-但對於應用程式存取 Vault 除了透過框架提供的方式，還可以使用 Vault 的 sidecar 方式，下面就來做一個演示。
+但對於應用程式存取 Vault 除了透過框架提供的方式，還可以使用 Vault 的 sidecar 方式或是 CSI(Container Storage Interface)。
