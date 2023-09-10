@@ -1,0 +1,30 @@
+image:
+  tag: "v2.2.9"
+  pullPolicy: "Always"
+
+deploymentAnnotations:
+  kube-score/ignore: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,container-ephemeral-storage-request-and-limit,deployment-has-poddisruptionbudget
+  kube-score/enable: container-ports-check
+
+ingress:
+  enabled: true
+
+autoscaling:
+  enabled: true
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              - appName
+          topologyKey: topology.kubernetes.io/zone
+app:
+  # -- Application defined properties.
+  properties:
+    a=b

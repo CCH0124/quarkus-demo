@@ -1,0 +1,38 @@
+suite: test cluster role
+values:
+  - ../ci/values-test.yaml
+templates:
+  - templates/clusterrole.yaml
+release:
+  name: test-release
+  namespace: test
+chart:
+  version:  0.1.0+test
+  appVersion: 1.16.0
+tests:
+  - it: should pass all kinds of assertion
+    template: templates/clusterrole.yaml
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: Helm
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: web-app
+      - matchRegex:
+          path: metadata.name
+          pattern: ^.*-web-app$
+      - isNotEmpty:
+          path: rules
+      - contains:
+          path: rules
+          content:
+            apiGroups: [""]
+            resources: ["pods", "namespaces", "nodes"]
+            verbs: ["get", "list"]
+          count: 1
+      - isKind:
+          of: ClusterRole
+      - isAPIVersion:
+          of: rbac.authorization.k8s.io/v1

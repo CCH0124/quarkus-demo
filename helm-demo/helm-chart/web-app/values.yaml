@@ -1,0 +1,163 @@
+# Default values for web-app.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# @default -- (int) Number of application pods
+replicaCount: 1
+
+image:
+  # -- Image registry
+  repository: registry.hub.docker.com/cch0124/helm-demo
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+  # -- Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+# -- Image pull secrets for the application
+imagePullSecrets: []
+# -- Overrides the chart's name
+nameOverride: ""
+# -- Overrides the chart's computed fullname
+fullnameOverride: ""
+
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "web"
+
+rbac:
+  create: true
+# -- annotations for Deployment resource
+deploymentAnnotations: {}
+# -- Common annotations for all pods
+podAnnotations: {}
+
+# -- Common annotations for all pods
+podSecurityContext: 
+  fsGroup: 185
+  runAsNonRoot: true
+
+# -- The SecurityContext for the application.
+securityContext: 
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  allowPrivilegeEscalation: false
+  runAsUser: 185
+  runAsGroup: 185
+
+# Application service configuration
+service:
+  # --  Type of the application service
+  type: ClusterIP
+  # -- Port of the application service
+  port: 8080
+
+
+# Application ingress configuration
+ingress:
+  # -- Specifies whether an ingress for the application should be created
+  enabled: false
+  # -- Ingress Class Name. MAY be required for Kubernetes versions >= 1.18
+  # For example: `ingressClassName: nginx`
+  className: ""
+  # -- Annotations for the application ingress
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- Hosts configuration for the application ingress
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          # -- pathType (e.g. ImplementationSpecific, Prefix, .. etc.) might also be required by some Ingress Controllers
+          pathType: ImplementationSpecific
+  # -- TLS configuration for the application ingress
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+
+# -- Resource requests and limits for the application. Ref [kubernetes doc manage-resources-containers](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/)
+resources:
+  limits:
+    cpu: 100m
+    memory: 256Mi
+  requests:
+    cpu: 10m
+    memory: 256Mi
+
+autoscaling:
+  # -- Enable autoscaling for the application.
+  enabled: false
+  # -- Minimum autoscaling replicas for the application.
+  minReplicas: 1
+  # -- Maximum autoscaling replicas for the application.
+  maxReplicas: 100
+  # -- Target CPU utilisation percentage for the application.
+  targetCPUUtilizationPercentage: 80
+  # -- Target memory utilisation percentage for the application.
+  targetMemoryUtilizationPercentage: 80
+
+# -- Node selector for the application pods.
+nodeSelector: {}
+
+# -- Tolerations for the application pods.
+tolerations: []
+
+# -- Affinity for application pods.
+affinity: {}
+
+# -- Configure the healthcheck for the application
+livenessProbe:
+  httpGet:
+    # -- This is the liveness check endpoint. Can not overrid.
+    path: /q/health/live
+    port: http
+    scheme: HTTP
+  # @default -- Number of seconds after the container has started before startup, liveness or readiness probes are initiated. 
+  initialDelaySeconds: 60
+  # @default -- How often (in seconds) to perform the probe.
+  periodSeconds: 30
+  # @default -- Minimum consecutive successes for the probe to be considered successful after having failed.
+  successThreshold: 1
+  # @default -- Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1.
+  timeoutSeconds: 10
+
+# -- Configure the healthcheck for the application 
+readinessProbe:
+  httpGet:
+    # -- This is the readiness check endpoint. Can not overrid.
+    path: /q/health/ready
+    port: http
+    scheme: HTTP
+  # @default -- Number of seconds after the container has started before startup, liveness or readiness probes are initiated. 
+  initialDelaySeconds: 60
+  # @default -- How often (in seconds) to perform the probe.
+  periodSeconds: 30
+  # @default -- Minimum consecutive successes for the probe to be considered successful after having failed.
+  successThreshold: 1
+  # @default -- Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1.
+  timeoutSeconds: 10
+
+# -- Lifecycle for application pods.
+lifecycle: 
+  preStop:
+    exec:
+      command: ["sh", "-c", "sleep 10"]
+
+# -- Environment variables to add to the application pods
+extraEnv: []
+
+# -- Environment variables from secrets or configmaps to add to the application pods
+extraEnvFrom: []
+
+app:
+  # -- Application defined properties.
+  properties:

@@ -1,0 +1,13 @@
+{{- if .Values.app.properties }}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ include "web-app.fullname" . }}
+  labels:
+    {{- include "web-app.labels" . | nindent 4 }}
+data:
+  application.properties: 
+    {{- with .Values.app.properties }}
+       {{- toYaml . | indent 4 }}
+    {{- end }}
+{{- end }}

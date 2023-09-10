@@ -1,0 +1,77 @@
+suite: test deployment
+values:
+  - ../ci/values-test.yaml
+templates:
+  - templates/deployment.yaml
+  - templates/configmap.yaml
+release:
+  name: test-release
+  namespace: test
+chart:
+  version:  0.1.0+test
+  appVersion: 1.16.0
+tests:
+  - it: should pass all kinds of assertion
+    template: templates/deployment.yaml
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: Helm
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: web-app
+      - equal:
+          path: metadata.annotations["org.cch.com/owner"]
+          value: cch
+      - equal:
+          path: metadata.annotations["org.cch.com/organize"]
+          value: CCH Tech
+      - isNotEmpty:
+          path: spec.template.metadata.annotations["checksum/config"]
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "web-app")].image
+          value: registry.hub.docker.com/cch0124/helm-demo:v2.2.9
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: web
+      - matchRegex:
+          path: metadata.name
+          pattern: ^.*-web-app$
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "web-app")].ports
+          content:
+            containerPort: 8080
+            protocol: TCP
+            name: http
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "web-app")].ports
+          content:
+            containerPort: 80
+      - isNotEmpty:
+          path: spec.template.spec.containers[?(@.name == "web-app")].livenessProbe
+      - isNotEmpty:
+          path: spec.template.spec.containers[?(@.name == "web-app")].readinessProbe
+      - isNotEmpty:
+          path: spec.template.spec.containers[?(@.name == "web-app")].resources
+      - isSubset:
+          path: spec.template.spec.containers[?(@.name == "web-app")].securityContext
+          content:
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+            runAsUser: 185
+            runAsGroup: 185
+      - isNotEmpty:
+          path: spec.template.spec.containers[?(@.name == "web-app")].lifecycle
+      - isSubset:
+          path: spec.template.spec.securityContext
+          content:
+            fsGroup: 185
+            runAsNonRoot: true
+      - isKind:
+          of: Deployment
+      - isAPIVersion:
+          of: apps/v1

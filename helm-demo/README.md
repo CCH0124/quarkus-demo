@@ -66,3 +66,8 @@ Easily start your Reactive RESTful Web Services
 Monitor your application's health using SmallRye Health
 
 [Related guide section...](https://quarkus.io/guides/smallrye-health)
+
+# K3d create
+```bash
+$ k3d cluster create -c k3d/config.yaml
+```
