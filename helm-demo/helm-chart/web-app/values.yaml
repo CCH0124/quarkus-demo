@@ -2,6 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# -- replicaCount is the number of application pods to run.
 # @default -- (int) Number of application pods
 replicaCount: 1
 
@@ -31,6 +32,7 @@ serviceAccount:
 
 rbac:
   create: true
+
 # -- annotations for Deployment resource
 deploymentAnnotations: {}
 # -- Common annotations for all pods
@@ -130,7 +132,7 @@ livenessProbe:
   # @default -- Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1.
   timeoutSeconds: 10
 
-# -- Configure the healthcheck for the application 
+# Configure the healthcheck for the application 
 readinessProbe:
   httpGet:
     # -- This is the readiness check endpoint. Can not overrid.
