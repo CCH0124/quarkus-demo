@@ -24,3 +24,11 @@ version: 0.1.0
 appVersion: "1.16.0"
 
 kubeVersion: ">= v1.19.0 < v1.25.0"
+
+maintainers: 
+  - name: CCH
+    email: cchong0124@gmail.com
+
+sources:
+  - https://github.com/CCH0124/quarkus-demo/tree/main/helm-demo
+home: https://github.com/CCH0124/quarkus-demo/tree/main/helm-demo
