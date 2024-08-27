@@ -261,7 +261,7 @@ Quarkus 直接使用 `/q/health/live` 和 `/q/health/ready` 端點來**避免 HT
 }
 ```
 
->如果使用 Quarkus Kubernetes 差件，生成 Kubernetes yaml 時，會在 `Deployment` 資源中自動配置 `liveness` 和 `readiness ` 探針
+>如果使用 Quarkus Kubernetes 依賴，生成 Kubernetes yaml 時，會在 `Deployment` 資源中自動配置 `liveness` 和 `readiness ` 探針
 
 ##　Kubernetes liveness 和　readiness 探針
 |Kubernetes probe parameter| Description |
